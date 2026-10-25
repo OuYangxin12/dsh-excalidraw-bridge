@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Excalidraw 画板桥接",
+    "description": "从画板按钮发起的会话可以读取用户的 Excalidraw 画板并在选定范围内直接绘制。"
+  }
+}

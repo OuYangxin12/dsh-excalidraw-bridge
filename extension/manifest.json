@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "DSH × Excalidraw Bridge",
+  "version": "0.1.0",
+  "description": "在 Excalidraw 画板上点一下，就在 DeepSeek Harness 里打开一个懂你现在画了什么、并且能在选定范围内帮你画的会话。",
+  "minimum_chrome_version": "111",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://excalidraw.com/*",
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://excalidraw.com/*"],
+      "js": ["page.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://excalidraw.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "DSH × Excalidraw Bridge"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

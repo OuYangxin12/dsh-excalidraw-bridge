@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Excalidraw Bridge",
+    "description": "Lets a Session read and draw on the user's Excalidraw board, scoped to the selected elements, when started from the canvas button."
+  }
+}

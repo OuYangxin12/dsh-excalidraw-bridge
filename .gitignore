@@ -1,0 +1,7 @@
+﻿# Local dev / verification artifacts
+.tmp*
+.dsh-excalidraw/
+node_modules/
+
+# Personal drawing export kept out of the plugin repo
+双线站台-道岔与信号方案.png

@@ -1,0 +1,30 @@
+{
+  "name": "dsh-excalidraw-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Ask DSH from the Excalidraw canvas: inject the current drawing as context, scope edits to the user's selection, and let DSH draw through a localhost bridge.",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-workspace"]
+    },
+    "manifestVersion": 1
+  }
+}
