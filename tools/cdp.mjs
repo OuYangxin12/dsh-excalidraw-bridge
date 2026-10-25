@@ -31,7 +31,7 @@ const chromeArgs = [
   '--disable-crash-reporter',
   '--disable-breakpad',
   '--no-sandbox',
-  '--window-size=1280,900',
+  '--window-size=' + arg('window-size', '1280,900'),
   `--remote-debugging-port=${port}`,
   `--user-data-dir=${profileDir}`,
 ]
@@ -101,6 +101,18 @@ try {
   const cdp = new Cdp(ws)
   await cdp.send('Page.enable')
   await cdp.send('Runtime.enable')
+  const viewport = arg('viewport')
+  let viewportSize
+  if (viewport !== undefined) {
+    const [width, height] = viewport.split('x').map(Number)
+    viewportSize = { width, height }
+    await cdp.send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height,
+      deviceScaleFactor: 1,
+      mobile: false,
+    })
+  }
   if (url !== 'about:blank') {
     await cdp.send('Page.navigate', { url })
   }
@@ -143,7 +155,13 @@ try {
   }
   const shotPath = arg('screenshot')
   if (shotPath !== undefined) {
-    const shot = await cdp.send('Page.captureScreenshot', { format: 'png' })
+    const shot = await cdp.send('Page.captureScreenshot', viewportSize === undefined
+      ? { format: 'png' }
+      : {
+          format: 'png',
+          captureBeyondViewport: true,
+          clip: { x: 0, y: 0, width: viewportSize.width, height: viewportSize.height, scale: 1 },
+        })
     fs.writeFileSync(shotPath, Buffer.from(shot.data, 'base64'))
     console.log(`screenshot ${shotPath}`)
   }

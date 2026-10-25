@@ -66,32 +66,19 @@
 
 ## 工作原理
 
-```text
-excalidraw.com 标签页
-├── page.js   (MAIN world, 扩展注入)
-│     React fiber 找到 Excalidraw App 实例
-│     api.getSceneElements / getAppState / updateScene / refresh / canvas 截图
-│     ▲ postMessage                 │
-│     ▼                             ▼
-├── content.js (isolated, 扩展注入)
-│     浮动按钮 + 聊天面板（shadow DOM）+ 轮询对话 + 收集画板上下文
-│     ▲ chrome.runtime
-│     ▼
-├── background.js (MV3 service worker)
-│     桥发现、长轮询页面操作、转发聊天请求
-│     ▲ HTTP (127.0.0.1:46231..46250)
-│     ▼
-└── DSH 插件 dsh-excalidraw-bridge（Host 进程内，静默后台）
-      ├─ /workspaces        列出已注册工作区
-      ├─ /workspace/create  把任意目录注册成工作区（同路径复用）
-      ├─ /start     首次发送时建会话 + 注入上下文 + 用户第一句（**不**打开窗口、不单独跑一轮）
-      ├─ /message   追加一条用户消息
-      ├─ /chat      长轮询会话日志 → 面板消息流（用户/助手/工具/错误；展开时可要更长的工具输出）
-      ├─ /scope     更新该会话的修改范围
-      ├─ /open      显式打开：把会话推给已连接的 DSH Web GUI
-      ├─ /interrupt 停止当前轮
-      └─ 工具：excalidraw_get_scene / apply / screenshot / select / status
-```
+![架构图](docs/architecture.png)
+
+（矢量源：[docs/architecture.svg](docs/architecture.svg)）
+
+一句话：**网页本身不发跨域请求**。Chrome 扩展用三个执行世界做“设备驱动”——MAIN world 摸 Excalidraw 内部 API、isolated world 放聊天面板、service worker 凭 host 权限访问本地回环端口；DSH Host 里的 Cordis 插件把 HTTP 变成建会话 / 发消息 / 调工具，再把工具操作经回环桥下发回扩展、最终落到 `api.updateScene(...)`。
+
+桥上主要接口：
+
+| 方向 | 接口 |
+| --- | --- |
+| 页面上行 | `/start`（建会话 + 注入画板上下文 + 用户第一句，合成一条消息只跑一轮）、`/message`、`/chat`（长轮询会话日志 → 聊天帧）、`/poll` `/result`（页面操作队列） |
+| DSH 下行 | 工具调用 → 操作队列 → 扩展取走 → `scene.apply` → `updateScene(...)`；`/pending` → GUI `openSession`（仅显式打开） |
+| 配置 | `/workspaces` 列出工作区、`/workspace/create` 注册任意目录、`/scope` 更新修改范围、`/open` / `/interrupt` / `/hello` |
 
 几个关键设计：
 
@@ -250,6 +237,8 @@ plugin/                    DSH Cordis 插件（已安装为 bundle）
 research/
   excalidraw-internals.md  调研：fiber 探测、localStorage、坐标换算、元素 schema
 docs/
+  architecture.png         架构总览图（本页上方）
+  architecture.svg         架构图矢量源
   chat-panel.png           小窗聊天面板截图
   sidebar-expanded.png     展开后的侧边栏（信息条/时间戳/完整工具输出）
   session-opened.png       显式「在 DSH 打开」时的会话视图
@@ -257,6 +246,7 @@ docs/
 tools/                     仅开发调试用（不参与运行）
   mock-bridge.mjs          不启动 DSH 也能跑「桥 + 工具」
   cdp.mjs                  无头 Chrome 脚本执行器
+  architecture.html        渲染架构图的本地包装页
   test-chat-panel.js       面板端到端测试
   test-extension-click.js  旧版点按钮流程测试
   test-page-protocol.js    页面协议测试

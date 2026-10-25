@@ -5,3 +5,6 @@ node_modules/
 
 # Personal drawing export kept out of the plugin repo
 双线站台-道岔与信号方案.png
+
+# User drawing exports saved from the Excalidraw page
+draws/
